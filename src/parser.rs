@@ -9,16 +9,16 @@ use nom::{
     IResult, Needed,
 };
 
-pub fn parse(i: &[u8]) -> IResult<&[u8], Instruction> {
+pub fn parse(i: &[u8], dvi_version: Option<u8>) -> IResult<&[u8], Instruction> {
     match i.get(0) {
         Some(&op) if op <= 127 => Ok((&i[1..], Instruction::Set(op as u32))),
         Some(&op) if op >= 171 && op <= 234 => Ok((&i[1..], Instruction::Font((op - 171) as u32))),
-        Some(&_) => parse_complex(i),
+        Some(&_) => parse_complex(i, dvi_version),
         None => Err(nom::Err::Incomplete(Needed::Unknown)),
     }
 }
 
-fn parse_complex(input: &[u8]) -> IResult<&[u8], Instruction> {
+fn parse_complex(input: &[u8], dvi_version: Option<u8>) -> IResult<&[u8], Instruction> {
     let (input, code) = be_u8(input)?;
     match code {
         // Set
@@ -198,6 +198,41 @@ fn parse_complex(input: &[u8]) -> IResult<&[u8], Instruction> {
                     post_pointer,
                     ident,
                     two_two_three,
+                },
+            ))
+        }
+        251 if dvi_version == Some(5) => {
+            Ok((
+                input,
+                Instruction::XdvPic {
+                },
+            ))
+        }
+        252 => {
+            Ok((
+                input,
+                Instruction::XdvFontDef {
+                },
+            ))
+        }
+        253 => {
+            Ok((
+                input,
+                Instruction::XdvGlyphArray {
+                },
+            ))
+        }
+        254 if dvi_version == Some(7) => {
+            Ok((
+                input,
+                Instruction::XdvTextAndGlyphs {
+                },
+            ))
+        }
+        254 if dvi_version == Some(5) => {
+            Ok((
+                input,
+                Instruction::XdvGlyphString {
                 },
             ))
         }

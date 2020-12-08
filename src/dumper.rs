@@ -150,7 +150,38 @@ pub(crate) fn dump<W: Write>(i: &Instruction, writer: &mut W) -> io::Result<()> 
             ident,
             two_two_three,
         } => dump_postpost(post_pointer, ident, two_two_three, writer),
+
+        Instruction::XdvPic {
+        } => dump_xdv_pic(writer),
+        Instruction::XdvFontDef {
+        } => dump_xdv_font_def(writer),
+        Instruction::XdvGlyphArray {
+        } => dump_xdv_glyph_array(writer),
+        Instruction::XdvTextAndGlyphs {
+        } => dump_xdv_text_and_glyphs(writer),
+        Instruction::XdvGlyphString {
+        } => dump_xdv_glyph_string(writer),
     }
+}
+
+fn dump_xdv_pic<W: Write>(_writer: &mut W) -> io::Result<()> {
+    unimplemented!();
+}
+
+fn dump_xdv_font_def<W: Write>(_writer: &mut W) -> io::Result<()> {
+    unimplemented!();
+}
+
+fn dump_xdv_glyph_array<W: Write>(_writer: &mut W) -> io::Result<()> {
+    unimplemented!();
+}
+
+fn dump_xdv_text_and_glyphs<W: Write>(_writer: &mut W) -> io::Result<()> {
+    unimplemented!();
+}
+
+fn dump_xdv_glyph_string<W: Write>(_writer: &mut W) -> io::Result<()> {
+    unimplemented!();
 }
 
 fn dump_set<W: Write>(ch: u32, writer: &mut W) -> io::Result<()> {

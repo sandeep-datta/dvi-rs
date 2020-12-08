@@ -289,6 +289,23 @@ pub enum Instruction {
         ident: u8,
         two_two_three: u32,
     },
+    // XDV extensions
+    /// 251: XDV5 only: Include image or pdf file.
+    /// parameters: box[1] matrix[4][6] p[2] len[2] path[l]
+    XdvPic {
+    },
+    /// 252
+    XdvFontDef {
+    },
+    /// 253
+    XdvGlyphArray {
+    },
+    /// 254: XDV7 only
+    XdvTextAndGlyphs {
+    },
+    /// 254: XDV5 only
+    XdvGlyphString {
+    },
 }
 
 // See SPECIFICATION.md for opt codes
@@ -299,8 +316,8 @@ impl Instruction {
     }
 
     /// Parse an instruction from a byte slice
-    pub fn parse(bytes: &[u8]) -> IResult<&[u8], Self> {
-        parser::parse(bytes)
+    pub fn parse(bytes: &[u8], dvi_version: Option<u8>) -> IResult<&[u8], Self> {
+        parser::parse(bytes, dvi_version)
     }
 }
 
@@ -315,7 +332,7 @@ mod tests {
             input.dump(&mut out).unwrap();
             assert_eq!(
                 input,
-                Instruction::parse(&out).unwrap().1,
+                Instruction::parse(&out, None).unwrap().1,
                 "serialized {:?}",
                 out
             );
