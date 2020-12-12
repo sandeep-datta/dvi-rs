@@ -152,7 +152,19 @@ pub(crate) fn dump<W: Write>(i: &Instruction, writer: &mut W) -> io::Result<()> 
         } => dump_postpost(post_pointer, ident, two_two_three, writer),
 
         Instruction::XdvPic {
-        } => dump_xdv_pic(writer),
+            pic_box,
+            matrix,
+            p,
+            len,
+            ref path,
+        } => dump_xdv_pic(
+            pic_box,
+            &matrix,
+            p,
+            len,
+            path,
+            writer,
+        ),
         Instruction::XdvFontDef {
         } => dump_xdv_font_def(writer),
         Instruction::XdvGlyphArray {
@@ -164,7 +176,14 @@ pub(crate) fn dump<W: Write>(i: &Instruction, writer: &mut W) -> io::Result<()> 
     }
 }
 
-fn dump_xdv_pic<W: Write>(_writer: &mut W) -> io::Result<()> {
+fn dump_xdv_pic<W: Write>(
+    pic_box: u8,
+    matrix: &[i32; 6],
+    p: i16,
+    len: u16,
+    path: &Vec<u8>,
+    writer: &mut W,
+) -> io::Result<()> {
     unimplemented!();
 }
 

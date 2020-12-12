@@ -291,8 +291,13 @@ pub enum Instruction {
     },
     // XDV extensions
     /// 251: XDV5 only: Include image or pdf file.
-    /// parameters: box[1] matrix[4][6] p[2] len[2] path[l]
+    /// parameters: box[1u] matrix[4s][6] p[2s] len[2u] path[len]
     XdvPic {
+        pic_box: u8,
+        matrix: [i32; 6],
+        p: i16,
+        len: u16,
+        path: Vec<u8>,
     },
     /// 252
     XdvFontDef {

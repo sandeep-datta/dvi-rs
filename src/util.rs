@@ -43,6 +43,19 @@ pub(crate) fn parse_223(mut i: &[u8]) -> IResult<&[u8], u32> {
     Ok((i, count))
 }
 
+pub(crate) fn parse_matrix(mut input: &[u8]) -> IResult<&[u8], [i32; 6]> {
+    use nom::number::streaming::be_i32;
+
+    let mut matrix = [0; 6];
+
+    for i in 0..matrix.len() {
+        let result = be_i32(input)?;
+        input = result.0;
+        matrix[i] = result.1;
+    }
+    Ok((input, matrix))
+}
+
 #[cfg(test)]
 mod tests {
 

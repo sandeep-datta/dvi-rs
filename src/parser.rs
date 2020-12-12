@@ -1,6 +1,6 @@
 //! Parsers for each instruction type
 
-use crate::{util::parse_223, FontDef, Instruction};
+use crate::{util::parse_223, util::parse_matrix, FontDef, Instruction};
 
 use nom::{
     bytes::streaming::take,
@@ -202,9 +202,21 @@ fn parse_complex(input: &[u8], dvi_version: Option<u8>) -> IResult<&[u8], Instru
             ))
         }
         251 if dvi_version == Some(5) => {
+            let (input, pic_box) = be_u8(input)?;
+            let (input, matrix) = parse_matrix(input)?;
+            let (input, p) = be_i16(input)?;
+            let (input, len) = be_u16(input)?;
+            let (input, path) = take(len)(input)?;
+            let path = path.to_vec();
+
             Ok((
                 input,
                 Instruction::XdvPic {
+                    pic_box,
+                    matrix,
+                    p,
+                    len,
+                    path,
                 },
             ))
         }
