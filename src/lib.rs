@@ -53,6 +53,38 @@ pub struct FontDef {
     /// Name of the font file
     pub filename: Vec<u8>,
 }
+/// XDV Picture element (image / pdf) definition
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct XdvPic {
+    pub pic_box: u8,
+    pub matrix: [i32; 6],
+    pub p: i16,
+    pub len: u16,
+    pub path: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct XdvFontDef {
+    pub font_num: i32,
+    pub pt_size: u32,
+    pub flags: u16,
+    pub font_name: String,
+    pub font_index: Option<u32>,
+    pub color_rgba: Option<u32>,
+    pub extension: Option<i32>,
+    pub slant: Option<i32>,
+    pub bold: Option<i32>,
+}
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct XdvGlyphArray {
+    /// Width of the string after rendering (in points).
+    pub str_width: i32,
+    pub num_glyphs: u16,
+    pub dx: Vec<i32>,
+    pub dy: Vec<i32>,
+    pub free_type_index: Vec<u16>,
+    pub utf16_chars: Vec<u16>,
+}
 
 /// A draw instruction
 ///
@@ -292,34 +324,11 @@ pub enum Instruction {
     // XDV extensions
     /// 251: XDV5 only: Include image or pdf file.
     /// parameters: box[1u] matrix[4s][6] p[2s] len[2u] path[len]
-    XdvPic {
-        pic_box: u8,
-        matrix: [i32; 6],
-        p: i16,
-        len: u16,
-        path: Vec<u8>,
-    },
+    XdvPic(XdvPic),
     /// 252
-    XdvFontDef {
-        font_num: i32,
-        pt_size: u32,
-        flags: u16,
-        font_name: Vec<u8>,
-        font_index: Option<u32>,
-        color_rgba: Option<u32>,
-        extension: Option<i32>,
-        slant: Option<i32>,
-        bold: Option<i32>,
-    },
-    /// 253
-    XdvGlyphArray {
-    },
-    /// 254: XDV7 only
-    XdvTextAndGlyphs {
-    },
-    /// 254: XDV5 only
-    XdvGlyphString {
-    },
+    XdvFontDef(XdvFontDef),
+    /// 253 | 254
+    XdvGlyphArray(XdvGlyphArray),
 }
 
 // See SPECIFICATION.md for opt codes
