@@ -153,20 +153,40 @@ pub(crate) fn dump<W: Write>(i: &Instruction, writer: &mut W) -> io::Result<()> 
 
         Instruction::XdvPic {
             pic_box,
-            matrix,
+            ref matrix,
             p,
             len,
             ref path,
         } => dump_xdv_pic(
             pic_box,
-            &matrix,
+            matrix,
             p,
             len,
             path,
             writer,
         ),
         Instruction::XdvFontDef {
-        } => dump_xdv_font_def(writer),
+            font_num,
+            pt_size,
+            flags,
+            ref font_name,
+            font_index,
+            color_rgba,
+            extension,
+            slant,
+            bold,
+        } => dump_xdv_font_def(
+            font_num,
+            pt_size,
+            flags,
+            font_name,
+            font_index,
+            color_rgba,
+            extension,
+            slant,
+            bold,
+            writer
+        ),
         Instruction::XdvGlyphArray {
         } => dump_xdv_glyph_array(writer),
         Instruction::XdvTextAndGlyphs {
@@ -177,17 +197,28 @@ pub(crate) fn dump<W: Write>(i: &Instruction, writer: &mut W) -> io::Result<()> 
 }
 
 fn dump_xdv_pic<W: Write>(
-    pic_box: u8,
-    matrix: &[i32; 6],
-    p: i16,
-    len: u16,
-    path: &Vec<u8>,
-    writer: &mut W,
+    _pic_box: u8,
+    _matrix: &[i32; 6],
+    _p: i16,
+    _len: u16,
+    _path: &Vec<u8>,
+    _writer: &mut W,
 ) -> io::Result<()> {
     unimplemented!();
 }
 
-fn dump_xdv_font_def<W: Write>(_writer: &mut W) -> io::Result<()> {
+fn dump_xdv_font_def<W: Write>(
+    _font_num: i32,
+    _pt_size: u32,
+    _flags: u16,
+    _font_name: &Vec<u8>,
+    _font_index: Option<u32>,
+    _color_rgba: Option<u32>,
+    _extension: Option<i32>,
+    _slant: Option<i32>,
+    _bold: Option<i32>,
+    _writer: &mut W,
+) -> io::Result<()> {
     unimplemented!();
 }
 

@@ -18,6 +18,15 @@ pub fn parse(i: &[u8], dvi_version: Option<u8>) -> IResult<&[u8], Instruction> {
     }
 }
 
+fn is_xdv(dvi_version: Option<u8>) -> bool {
+    match dvi_version {
+        Some(ver) => {
+            5 <= ver && ver <= 7
+        }
+        None => false
+    }
+}
+
 fn parse_complex(input: &[u8], dvi_version: Option<u8>) -> IResult<&[u8], Instruction> {
     let (input, code) = be_u8(input)?;
     match code {
@@ -220,14 +229,103 @@ fn parse_complex(input: &[u8], dvi_version: Option<u8>) -> IResult<&[u8], Instru
                 },
             ))
         }
-        252 => {
+        252 if is_xdv(dvi_version) => {
+            let (input, font_num) = be_i32(input)?;
+            let (input, pt_size) = be_u32(input)?;
+            let (input, flags) = be_u16(input)?;
+            let (mut input, ps_name_len) = be_u8(input)?;
+
+            let mut family_name_len : u8 = 0;
+            let mut style_name_len : u8 = 0;
+
+            if dvi_version == Some(5) {
+                let retv = be_u8(input)?;
+                input = retv.0;
+                family_name_len = retv.1;
+                let retv = be_u8(input)?;
+                input = retv.0;
+                style_name_len = retv.1;
+            }
+
+            let (mut input, font_name) = take(ps_name_len)(input)?;
+            let font_name = font_name.to_vec();
+            let mut font_index : Option<u32> = None;
+
+            if dvi_version == Some(5) {
+                let retv = take(family_name_len + style_name_len)(input)?;
+                input = retv.0;
+            }
+            else {
+                let retv = be_u32(input)?;
+                input = retv.0;
+                font_index = Some(retv.1);
+            }
+
+            let mut color_rgba : Option<u32> = None;
+
+            if flags & 0x0200 != 0 { // Colored
+                // The font color must not interfere with color specials. If the
+                // font color is not black, all color specials should be
+                // ignored, i.e. glyphs of a non-black fonts have a fixed color
+                // that can't be changed by color specials.
+                let retv = be_u32(input)?;
+                input = retv.0;
+                color_rgba = Some(retv.1);
+            }
+
+            let mut extension : Option<i32> = None;
+
+            if flags & 0x1000 != 0 { // extension
+                let retv = be_i32(input)?;
+                input = retv.0;
+                extension = Some(retv.1);
+            }
+
+            let mut slant : Option<i32> = None;
+
+            if flags & 0x2000 != 0 { // slant
+                let retv = be_i32(input)?;
+                input = retv.0;
+                slant = Some(retv.1);
+            }
+
+            let mut bold : Option<i32> = None;
+
+            if flags & 0x4000 != 0 { // slant
+                let retv = be_i32(input)?;
+                input = retv.0;
+                bold = Some(retv.1);
+            }
+
+            // Skip variations data
+            if flags & 0x0800 != 0 && dvi_version == Some(5) {
+                let num_variations: i16;
+                let retv = be_i16(input)?;
+                input = retv.0;
+                num_variations = retv.1;
+
+                for _ in 0..num_variations {
+                    let retv = be_u32(input)?;
+                    input = retv.0;
+                }
+            }
+
             Ok((
                 input,
                 Instruction::XdvFontDef {
+                    font_num,
+                    pt_size,
+                    flags,
+                    font_name,
+                    font_index,
+                    color_rgba,
+                    extension,
+                    slant,
+                    bold,
                 },
             ))
         }
-        253 => {
+        253 if is_xdv(dvi_version) => {
             Ok((
                 input,
                 Instruction::XdvGlyphArray {

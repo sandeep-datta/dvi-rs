@@ -301,6 +301,15 @@ pub enum Instruction {
     },
     /// 252
     XdvFontDef {
+        font_num: i32,
+        pt_size: u32,
+        flags: u16,
+        font_name: Vec<u8>,
+        font_index: Option<u32>,
+        color_rgba: Option<u32>,
+        extension: Option<i32>,
+        slant: Option<i32>,
+        bold: Option<i32>,
     },
     /// 253
     XdvGlyphArray {
