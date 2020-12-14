@@ -1,6 +1,7 @@
 //! Parsers for each instruction type
 
 use crate::{util::parse_223, util::parse_matrix, FontDef, Instruction, XdvPic, XdvFontDef, XdvGlyphArray};
+use dassign::dassign;
 
 use nom::{
     bytes::streaming::take,
@@ -279,12 +280,8 @@ fn xdv_font_def(input: &[u8], dvi_version: u8) -> IResult<&[u8], Instruction> {
     let mut style_name_len : u8 = 0;
 
     if dvi_version == 5 {
-        let retv = be_u8(input)?;
-        input = retv.0;
-        family_name_len = retv.1;
-        let retv = be_u8(input)?;
-        input = retv.0;
-        style_name_len = retv.1;
+        dassign!((input, family_name_len) = be_u8(input)?);
+        dassign!((input, style_name_len) = be_u8(input)?);
     }
 
     let (mut input, font_name) = take(ps_name_len)(input)?;
@@ -292,13 +289,13 @@ fn xdv_font_def(input: &[u8], dvi_version: u8) -> IResult<&[u8], Instruction> {
     let mut font_index : Option<u32> = None;
 
     if dvi_version == 5 {
-        let retv = take(family_name_len + style_name_len)(input)?;
-        input = retv.0;
+        let _unused;
+        dassign!((input, _unused) = take(family_name_len + style_name_len)(input)?);
     }
     else {
-        let retv = be_u32(input)?;
-        input = retv.0;
-        font_index = Some(retv.1);
+        let fi;
+        dassign!((input, fi) = be_u32(input)?);
+        font_index = Some(fi);
     }
 
     let mut color_rgba : Option<u32> = None;
@@ -308,45 +305,43 @@ fn xdv_font_def(input: &[u8], dvi_version: u8) -> IResult<&[u8], Instruction> {
         // font color is not black, all color specials should be
         // ignored, i.e. glyphs of a non-black fonts have a fixed color
         // that can't be changed by color specials.
-        let retv = be_u32(input)?;
-        input = retv.0;
-        color_rgba = Some(retv.1);
+        let color;
+        dassign!((input, color) = be_u32(input)?);
+        color_rgba = Some(color);
     }
 
     let mut extension : Option<i32> = None;
 
     if flags & 0x1000 != 0 { // extension
-        let retv = be_i32(input)?;
-        input = retv.0;
-        extension = Some(retv.1);
+        let ext;
+        dassign!((input, ext) = be_i32(input)?);
+        extension = Some(ext);
     }
 
     let mut slant : Option<i32> = None;
 
     if flags & 0x2000 != 0 { // slant
-        let retv = be_i32(input)?;
-        input = retv.0;
-        slant = Some(retv.1);
+        let sl;
+        dassign!((input, sl) = be_i32(input)?);
+        slant = Some(sl);
     }
 
     let mut bold : Option<i32> = None;
 
-    if flags & 0x4000 != 0 { // slant
-        let retv = be_i32(input)?;
-        input = retv.0;
-        bold = Some(retv.1);
+    if flags & 0x4000 != 0 { // bold
+        let b;
+        dassign!((input, b) = be_i32(input)?);
+        bold = Some(b);
     }
 
     // Skip variations data
     if flags & 0x0800 != 0 && dvi_version == 5 {
         let num_variations: i16;
-        let retv = be_i16(input)?;
-        input = retv.0;
-        num_variations = retv.1;
+        dassign!((input, num_variations) = be_i16(input)?);
 
         for _ in 0..num_variations {
-            let retv = be_u32(input)?;
-            input = retv.0;
+            let _unused;
+            dassign!((input, _unused) = be_u32(input)?);
         }
     }
 
@@ -376,14 +371,13 @@ fn xdv_glyph_array(mut input: &[u8], dvi_version: u8, opcode: u8) -> IResult<&[u
     let mut utf16_chars = vec![];
 
     if read_chars {
-        let retv = be_u16(input)?;
-        input = retv.0;
-        let num_chars = retv.1;
+        let num_chars;
+        dassign!((input, num_chars) = be_u16(input)?);
 
         for _ in 0..num_chars {
-            let retv = be_u16(input)?;
-            input = retv.0;
-            utf16_chars.push(retv.1);
+            let ch;
+            dassign!((input, ch) = be_u16(input)?);
+            utf16_chars.push(ch);
         }
     }
 
@@ -394,23 +388,23 @@ fn xdv_glyph_array(mut input: &[u8], dvi_version: u8, opcode: u8) -> IResult<&[u
     let mut dy = vec![];
 
     for _ in 0..num_glyphs {
-        let retv = be_i32(input)?;
-        input = retv.0;
-        dx.push(retv.1);
+        let val;
+        dassign!((input, val) = be_i32(input)?);
+        dx.push(val);
 
         if !xonly {
-            let retv = be_i32(input)?;
-            input = retv.0;
-            dy.push(retv.1);
+            let val;
+            dassign!((input, val) = be_i32(input)?);
+            dy.push(val);
         }
     }
 
     let mut free_type_index = vec![];
 
     for _ in 0..num_glyphs {
-        let retv = be_u16(input)?;
-        input = retv.0;
-        free_type_index.push(retv.1);
+        let idx;
+        dassign!((input, idx) = be_u16(input)?);
+        free_type_index.push(idx);
     }
 
     Ok((

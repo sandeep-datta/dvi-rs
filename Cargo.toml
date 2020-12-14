@@ -13,3 +13,4 @@ edition = "2018"
 [dependencies]
 byteorder = "^1.1"
 nom = "5.1.1"
+dassign = "0.2.0"
